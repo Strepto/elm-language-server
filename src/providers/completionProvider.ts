@@ -174,41 +174,41 @@ export class CompletionProvider {
           forest,
         );
       } else if (
-        (nodeAtPosition.type === "field_access_segment" ||
-          nodeAtPosition.parent?.type === "field_access_segment" ||
-          TreeUtils.descendantsOfType(nodeAtPosition, "field_access_segment")
-            .length > 0) &&
+        (nodeAtPosition.type === "dot" ||
+          nodeAtPosition.type === "field_access_segment") &&
         nodeAtPosition.parent
       ) {
-        const accessSegmentNode =
-          nodeAtPosition.type === "field_access_segment"
-            ? nodeAtPosition
-            : nodeAtPosition.parent?.type === "field_access_segment"
+        const accessExprNode =
+          nodeAtPosition.parent.type === "field_access_expr"
             ? nodeAtPosition.parent
-            : TreeUtils.descendantsOfType(
-                nodeAtPosition,
-                "field_access_segment",
-              )[0];
+            : TreeUtils.findParentOfType("field_access_expr", nodeAtPosition);
 
-        const dotIndex = TreeUtils.findFirstNamedChildOfType(
-          "dot",
-          accessSegmentNode,
-        )?.startPosition.column;
+        if (accessExprNode) {
+          const dotIndex = accessExprNode.children.find((a) => a.text === ".")
+            ?.startPosition.column;
 
-        if (dotIndex) {
-          completions.push(
-            ...this.getRecordCompletions(
-              accessSegmentNode,
-              tree,
-              Range.create(
-                Position.create(params.position.line, dotIndex + 1),
-                params.position,
-              ),
-              elmWorkspace.getImports(),
+          if (dotIndex && accessExprNode.firstChild?.firstChild?.firstChild) {
+            const definition = TreeUtils.findDefinitionNodeByReferencingNode(
+              accessExprNode.firstChild.firstChild.firstChild,
               params.textDocument.uri,
-              forest,
-            ),
-          );
+              tree,
+              elmWorkspace.getImports(),
+            );
+
+            if (definition) {
+              return this.getRecordCompletions(
+                definition.node,
+                tree,
+                Range.create(
+                  Position.create(params.position.line, dotIndex + 1),
+                  params.position,
+                ),
+                elmWorkspace.getImports(),
+                definition.uri,
+                forest,
+              );
+            }
+          }
         }
       }
 
@@ -507,7 +507,6 @@ export class CompletionProvider {
     uri: string,
     forest: IForest,
   ): CompletionItem[] {
-    const result: CompletionItem[] = [];
     let typeDeclarationNode = TreeUtils.getTypeAliasOfRecord(
       node,
       tree,
@@ -535,6 +534,7 @@ export class CompletionProvider {
       );
     }
 
+    const result: CompletionItem[] = [];
     if (typeDeclarationNode) {
       const fields = TreeUtils.getAllFieldsFromTypeAlias(typeDeclarationNode);
 

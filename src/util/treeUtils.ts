@@ -16,7 +16,7 @@ export type NodeType =
   | "UnionConstructor"
   | "FieldType";
 
-const functionNameRegex = new RegExp("[a-zA-Z0-9_]+");
+const functionNameRegex = new RegExp("[a-zA-Z0-9_.]+");
 
 export interface IExposing {
   name: string;
