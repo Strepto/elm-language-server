@@ -19,6 +19,7 @@
     "escape-string-regexp": "^4.0.0",
     "execa": "^4.0.2",
     "fast-diff": "^1.2.0",
+    "fuzzysort": "^1.1.4",
     "globby": "^11.0.1",
     "pjson": "1.0.9",
     "vscode-languageserver": "^6.1.1",
@@ -51,6 +52,7 @@
     "lint": "eslint -c .eslintrc.js --ext .ts src",
     "build-tree-sitter": "tree-sitter build-wasm ./node_modules/tree-sitter-elm",
     "test": "jest --coverage",
+    "test-watch": "jest --watch",
     "generate-toc": "doctoc README.md"
   },
   "bin": {
