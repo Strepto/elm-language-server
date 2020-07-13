@@ -1,5 +1,30 @@
 import { Position } from "vscode-languageserver";
 
+function getSourceFiles(source: string): { [K: string]: string } {
+  const sources: { [K: string]: string } = {};
+  let currentFile = "";
+  const regex = /--@ ([a-zA-Z/]+.elm)/;
+
+  const x = regex.exec(source);
+
+  if (x == null || x[1] === undefined) {
+    sources["Main.elm"] = source;
+  } else {
+    source.split("\n").forEach((s) => {
+      const match = regex.exec(s);
+
+      if (match !== null) {
+        sources[match[1]] = "";
+        currentFile = match[1];
+      } else if (currentFile !== "") {
+        sources[currentFile] = sources[currentFile] + s + "\n";
+      }
+    });
+  }
+
+  return sources;
+}
+
 export function getCaretPositionFromSource(
   source: string,
 ): {
@@ -138,29 +163,4 @@ export function getInvokeAndTargetPositionFromSource(source: string): TestType {
       fileWithTarget,
     };
   }
-}
-
-function getSourceFiles(source: string): { [K: string]: string } {
-  const sources: { [K: string]: string } = {};
-  let currentFile = "";
-  const regex = /--@ ([a-zA-Z/]+.elm)/;
-
-  const x = regex.exec(source);
-
-  if (x == null || x[1] === undefined) {
-    sources["Main.elm"] = source;
-  } else {
-    source.split("\n").forEach((s) => {
-      const match = regex.exec(s);
-
-      if (match !== null) {
-        sources[match[1]] = "";
-        currentFile = match[1];
-      } else if (currentFile !== "") {
-        sources[currentFile] = sources[currentFile] + s + "\n";
-      }
-    });
-  }
-
-  return sources;
 }
